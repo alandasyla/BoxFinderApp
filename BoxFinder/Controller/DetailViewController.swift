@@ -4,7 +4,6 @@
 //
 //  Created by Alanda Syla on 6/20/18.
 //  Copyright © 2018 Alanda Syla. All rights reserved.
-//
 
 import UIKit
 import RealmSwift

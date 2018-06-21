@@ -9,7 +9,6 @@
 import UIKit
 import AVFoundation
 
-
 class QRCodeReaderViewController: UIViewController, AVCaptureMetadataOutputObjectsDelegate {
     
     var captureSession:AVCaptureSession?
@@ -21,13 +20,11 @@ class QRCodeReaderViewController: UIViewController, AVCaptureMetadataOutputObjec
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        //let captureDevice = AVCaptureDevice.defaultDevice(withMediaType: AVMediaTypeVideo)
-        
-        let captureDevice = AVCaptureDevice.default(for: AVMediaType.video)
+        guard  let captureDevice = AVCaptureDevice.default(for: .video) else { return }
         
         do {
             
-            let input = try AVCaptureDeviceInput(device: captureDevice!)
+            let input = try AVCaptureDeviceInput(device: captureDevice)
             
             captureSession = AVCaptureSession()
             captureSession?.addInput(input)
@@ -61,39 +58,31 @@ class QRCodeReaderViewController: UIViewController, AVCaptureMetadataOutputObjec
             print(error)
             return
         }
-        
     }
     
-    func captureOutput(_ captureOutput: AVCaptureOutput!, didOutputMetadataObjects metadataObjects: [Any]!, from connection: AVCaptureConnection!) {
+    func metadataOutput(_ output: AVCaptureMetadataOutput, didOutput metadataObjects: [AVMetadataObject]!, from connection: AVCaptureConnection) {
         
-        guard let metadataObjs = metadataObjects , metadataObjects.count > 0 else {
+        if metadataObjects == nil || metadataObjects.count == 0 {
             qrCodeFrameView?.frame = CGRect.zero
             print("No QR code is detected")
             return
         }
-        
-        let metadataObj = metadataObjs[0] as! AVMetadataMachineReadableCodeObject
+        let metadataObj = metadataObjects[0] as! AVMetadataMachineReadableCodeObject
         
         if metadataObj.type == AVMetadataObject.ObjectType.qr {
-            
+            // If the found metadata is equal to the QR code metadata then update the status label's text and set the bounds
             let barCodeObject = videoPreviewLayer?.transformedMetadataObject(for: metadataObj)
             qrCodeFrameView?.frame = barCodeObject!.bounds
             
             if metadataObj.stringValue != nil {
-                
                 captureSession?.stopRunning()
-                
-                self.dismiss(animated: true
-                    , completion: {
-                        self.qrCodeCallBack(metadataObj.stringValue!)
-                })
-                
+
+                self.dismiss(animated: true) {
+                    self.qrCodeCallBack(metadataObj.stringValue!)
+                }
                 print(metadataObj.stringValue)
-                
             }
         }
-        
     }
-    
 }
 
